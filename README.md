@@ -57,6 +57,12 @@ Your device volume will be set to 0 by default. Use the ALSA mixer to adjust the
 
 ### Example Usage
 
+Get it through npm:
+
+    $ npm install aplay --save
+
+and then:
+
 ```javascript
 
 var Sound = require('aplay');
@@ -85,7 +91,7 @@ music.on('complete' function () {
 
 ### CLI Usage
 
-    $ node node-aplay my-song.wav
+    $ node node_modules/aplay my-song.wav
 
 
 It's simple as that.
