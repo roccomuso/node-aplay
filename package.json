@@ -1,0 +1,29 @@
+{
+  "name": "aplay",
+  "version": "1.0.0",
+  "description": "aplay wrapper for Node.js",
+  "main": "node-aplay.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roccomuso/node-aplay.git"
+  },
+  "keywords": [
+    "aplay",
+    "wav",
+    "song",
+    "wrapper",
+    "node",
+    "rpi",
+    "raspberry",
+    "sound"
+  ],
+  "author": "Rocco Musolino",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/roccomuso/node-aplay/issues"
+  },
+  "homepage": "https://github.com/roccomuso/node-aplay#readme"
+}
