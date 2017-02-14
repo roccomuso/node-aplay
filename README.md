@@ -9,6 +9,8 @@ ALSA stands for Advanced Linux Sound Architecture. It is a suite of hardware dri
 
 **aplay is a simple native ALSA wav player** (to reproduce .mp3 see *mpg321*).
 
+[![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
+
 ## Installation
 
 ### Debian/Ubuntu/Raspbian
