@@ -1,9 +1,11 @@
 # node-aplay
 ALSA aplay wrapper for Node.js
 
-This module was initially developed by @pmelande but no more mantained by him. This fork introduces some bug fixes and improvements.
+It provides basic audio capabilities.
 
-It provides basic audio capabilities in the Raspbian distribution of Debian on a Raspberry Pi platform. Node-aplay should however work on any Debian/Ubuntu system providing ALSA support has been installed.
+Node-aplay works on:
+  1. any Debian/Ubuntu system providing ALSA support has been installed.
+  2. MAC OSX (comes with `afplay` by default)
 
 ALSA stands for Advanced Linux Sound Architecture. It is a suite of hardware drivers, libraries and utilities which provide audio and MIDI functionality for the Linux operating system.
 
