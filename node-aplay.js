@@ -9,9 +9,12 @@
  * MIT License
  */
 
+var os = require('os')
 var spawn = require('child_process').spawn
 var events = require('events')
 var util = require('util')
+
+var aplayExec = os.platform() === 'darwin' ? 'afplay' : 'aplay'
 
 function Sound () {
   events.EventEmitter.call(this)
@@ -22,7 +25,7 @@ util.inherits(Sound, events.EventEmitter)
 Sound.prototype.play = function (fileName) {
   this.stopped = false
   if (typeof this.process !== 'undefined') this.process.kill('SIGTERM') // avoid multiple play for the same istance
-  this.process = spawn('aplay', [ fileName ])
+  this.process = spawn(aplayExec, [ fileName ])
   var self = this
   this.process.on('exit', function (code, sig) {
     if (code !== null && sig === null) {
