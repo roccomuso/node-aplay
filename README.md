@@ -93,6 +93,12 @@ music.on('complete', function () {
 
 ```
 
+## Options
+
+The constructor accepts a config object where you can provide:
+
+- `channel`: specify a channel.
+
 ### CLI Usage
 
     $ node node_modules/aplay my-song.wav
