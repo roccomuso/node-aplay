@@ -1,7 +1,7 @@
 /**
  * Javascript ALSA aplay wrapper for Node.js
  *
- * @mantainedBy Rocco Musolino - hackerstribe.com
+ * @mantainedBy Rocco Musolino - @roccomuso
  * @author Patrik Melander (lotAballs) node-aplay module
  * @originalAuthor Maciej Sopyło @ KILLAHFORGE.
  *
