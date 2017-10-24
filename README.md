@@ -1,17 +1,16 @@
-# node-aplay
-ALSA aplay wrapper for Node.js
+# aplay
 
-It provides basic audio capabilities.
+[![NPM Version](https://img.shields.io/npm/v/aplay.svg)](https://www.npmjs.com/package/aplay) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-Node-aplay works on:
+> ALSA aplay wrapper for Node.js. It provides basic audio capabilities.
+
+`aplay` works on:
   1. any Debian/Ubuntu system providing ALSA support has been installed.
   2. MAC OSX (comes with `afplay` by default)
 
 ALSA stands for Advanced Linux Sound Architecture. It is a suite of hardware drivers, libraries and utilities which provide audio and MIDI functionality for the Linux operating system.
 
 **aplay is a simple native ALSA wav player** (to reproduce .mp3 see *mpg321*).
-
-[![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
 ## Installation
 
