@@ -33,6 +33,7 @@ Sound.prototype.play = function (fileName) {
   this.process = spawn(aplayExec, args)
   var self = this
   this.process.on('exit', function (code, sig) {
+    self.stopped = true
     if (code !== null && sig === null) {
       self.emit('complete')
     }
