@@ -1,6 +1,8 @@
+#!/usr/bin/env node
 /**
  * Javascript ALSA aplay wrapper for Node.js
  *
+ * @author Martin Hammerchmidt, Yellow Innovation
  * @mantainedBy Rocco Musolino - @roccomuso
  * @author Patrik Melander (lotAballs) node-aplay module
  * @originalAuthor Maciej Sopyło @ KILLAHFORGE.
@@ -9,70 +11,177 @@
  * MIT License
  */
 
-var os = require('os')
-var spawn = require('child_process').spawn
-var events = require('events')
-var util = require('util')
+const os = require('os');
+const {spawn} = require('child_process');
+const EventEmitter = require('events');
 
-var aplayExec = os.platform() === 'darwin' ? 'afplay' : 'aplay'
+const aplayExec = os.platform() === 'darwin' ? 'afplay' : 'aplay';
 
-function Sound (opts) {
-  events.EventEmitter.call(this)
-  opts = opts || {}
-  this.channel = opts.channel || null
-}
+/**
+ * Aplay let you play WAV files through aplay spawned as a process.
+ *
+ * To debug playback errors, you can set the `NODE_APLAY_DEBUG` environment
+ * variable. It will pipe `stdout` and `stderr` from `aplay` process to node.
+ *
+ * Aplay extends EventEmitter. List of events emitted:
+ *
+ * - `complete`: emitted when the played file complete its playback.
+ * - `stop`: emitted when the playback stopped on a call of `stop()`.
+ * - `pause`: emitted when the playback paused on a call of `pause()`.
+ * - `resume`: emitted when the playback resume after being paused on a call of
+ *   `resume()`.
+ * - `error`: emitted when aplay exited unexpectedly. Most common causes are
+ *    wrong filename or the audio device busy.
+ */
+class Aplay extends EventEmitter
+{
+    /**
+     * @param {Object} [options] Various options
+     * @param {?Number=} options.channels Number of channels [1;32]. Pass `null`
+     *  to default to aplay defaults.
+     */
+    constructor(options)
+    {
+        super();
+        this.process = null;
+        this.paused = false;
 
-util.inherits(Sound, events.EventEmitter)
-
-Sound.prototype.play = function (fileName) {
-  this.stopped = false
-  if (typeof this.process !== 'undefined') this.process.kill('SIGTERM') // avoid multiple play for the same istance
-  var args = []
-  if (this.channel) args = args.concat(['-c ' + this.channel])
-  args = args.concat([fileName])
-  this.process = spawn(aplayExec, args)
-  var self = this
-  this.process.on('exit', function (code, sig) {
-    self.stopped = true
-    if (code !== null && sig === null) {
-      self.emit('complete')
+        options = options || {};
+        const channels = options.channels || null;
+        this.channels(channels);
     }
-  })
-  return this
-}
-Sound.prototype.stop = function () {
-  if (this.process) {
-    this.stopped = true
-    this.process.kill('SIGTERM')
-    this.emit('stop')
-  }
-  return this
-}
-Sound.prototype.pause = function () {
-  if (this.process) {
-    if (this.stopped) return true
-    this.process.kill('SIGSTOP')
-    this.emit('pause')
-  }
-  return this
-}
-Sound.prototype.resume = function () {
-  if (this.process) {
-    if (this.stopped) return this.play()
-    this.process.kill('SIGCONT')
-    this.emit('resume')
-  }
-  return this
-}
-Sound.prototype.channel = function (ch) {
-  this.channel = ch
-  return this
+
+    /**
+     * Play a WAV file
+     * @param {String} filename WAV file to play
+     * @return {Aplay} return this instance
+     */
+    play(filename)
+    {
+        if (typeof filename !== 'string')
+        {
+            throw new TypeError('filename must be a string.');
+        }
+
+        if (this.process)
+        {
+            this.process.kill('SIGTERM');
+            this.process = null;
+            this.paused = false;
+        }
+
+        const args = [];
+
+        if (this._channels)
+        {
+            args.push('-c ' + this._channels);
+        }
+
+        args.push(filename);
+
+        this.process = spawn(aplayExec, args);
+
+        this.process.on('exit', (code, sig) =>
+        {
+            this.stopped = true;
+
+            if (code === 0 && sig === null)
+            {
+                this.emit('complete');
+            }
+            else
+            {
+                this.emit('error', code, sig);
+            }
+        });
+
+        if (process.env.NODE_APLAY_DEBUG)
+        {
+            this.process.stdout.pipe(process.stdout);
+            this.process.stderr.pipe(process.stderr);
+        }
+
+        return this;
+    }
+
+    /**
+     * Stop playing audio, if any.
+     */
+    stop()
+    {
+        if (!this.process)
+        {
+            return;
+        }
+
+        this.process.removeAllListeners();
+        this.process.kill('SIGTERM');
+        this.process = null;
+        this.emit('stop');
+    }
+
+    /**
+     * Pause the current playing file, if there is one.
+     */
+    pause()
+    {
+        if (!this.process || this.paused)
+        {
+            return;
+        }
+
+        this.process.kill('SIGSTOP');
+        this.paused = true;
+        this.emit('pause');
+    }
+
+    /**
+     * Resume audio if it previously got paused.
+     */
+    resume()
+    {
+        if (!this.process || !this.paused)
+        {
+            return;
+        }
+
+        this.process.kill('SIGCONT');
+        this.paused = false;
+        this.emit('resume');
+    }
+
+    /**
+     * Set aplay channels.
+     *
+     * Note that it will only take effect on next `play()` calls.
+     *
+     * @param {?Number} channels Number of channels [1;32]. Pass `null`
+     *  to default to aplay defaults.
+     */
+    channels(channels)
+    {
+        this._channels = channels;
+
+        if (this._channels !== null && (typeof this._channels !== 'number' ||
+           this._channels < 1 || this._channels > 32))
+        {
+            throw new Error('channels must be either null either a number in range [1;32].');
+        }
+    }
 }
 
-module.exports = Sound
+module.exports = Aplay;
 
-// autonomous execution: node node-aplay.js my-song.wav
-if (!module.parent) {
-  var player = new Sound()
-  player.play(process.argv[2])
+if (!module.parent)
+{
+    const filename = process.argv[2];
+    if (!filename)
+    {
+        console.error('usage: node node-aplay.js <filename>');
+        console.error('node-aplay is a node module to play WAV files through aplay as a spawned process.');
+        process.exit(1);
+    }
+
+    const player = new Aplay();
+    player.play(filename);
 }
