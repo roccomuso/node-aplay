@@ -65,7 +65,7 @@ class Aplay extends EventEmitter
 
         if (this.process)
         {
-            this.process.kill('SIGTERM');
+            this.process.kill('SIGKILL');
             this.process = null;
             this.paused = false;
         }
@@ -115,7 +115,7 @@ class Aplay extends EventEmitter
         }
 
         this.process.removeAllListeners();
-        this.process.kill('SIGTERM');
+        this.process.kill('SIGKILL');
         this.process = null;
         this.emit('stop');
     }
