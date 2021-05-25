@@ -38,7 +38,7 @@ export default class Sound extends EventEmitter {
     // avoid multiple play for the same istance
     if (this._process) this._process.kill('SIGTERM');
 
-    let args: string[] = this._channel ? [] : [`-c ${this._channel}`];
+    let args: string[] = this._channel ? [`-c ${this._channel}`] : [];
     if (fileName) args = args.concat([fileName]);
 
     this._process = spawn(aplayExec, args);
