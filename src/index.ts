@@ -60,9 +60,9 @@ export default class Sound extends EventEmitter {
     return this;
   }
 
-  public pause() {
+  public pause(): this {
     if (this._process) {
-      if (this._stopped) return true;
+      if (this._stopped) return this;
       this._process.kill('SIGSTOP');
       this.emit('pause');
     }
@@ -80,7 +80,7 @@ export default class Sound extends EventEmitter {
     return this;
   }
 
-  public setChannel(ch: number) {
+  public setChannel(ch: number): this {
     this._channel = ch;
     return this;
   }
