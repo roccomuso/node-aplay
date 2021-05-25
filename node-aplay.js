@@ -16,11 +16,13 @@ var util = require('util')
 
 var aplayExec = os.platform() === 'darwin' ? 'afplay' : 'aplay'
 
-function Sound (opts) {
+function Sound(opts) {
   events.EventEmitter.call(this)
   opts = opts || {}
   this.channel = opts.channel || null
 }
+
+test
 
 util.inherits(Sound, events.EventEmitter)
 
