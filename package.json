@@ -1,6 +1,6 @@
 {
-  "name": "aplay",
-  "version": "1.2.0",
+  "name": "typed-aplay-test",
+  "version": "1.2.4",
   "description": "aplay wrapper for Node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

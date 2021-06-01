@@ -11,7 +11,7 @@
 
 import * as os from 'os';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import EventEmitter = require('events');
+import EventEmitter from 'events';
 
 const aplayExec = os.platform() === 'darwin' ? 'afplay' : 'aplay';
 
@@ -19,7 +19,7 @@ interface SoundOptions {
   channel?: number;
 }
 
-export default class Sound extends EventEmitter {
+export class Sound extends EventEmitter {
   private _channel?: number;
   private _process?: ChildProcessWithoutNullStreams;
   private _stopped = true;
@@ -85,6 +85,8 @@ export default class Sound extends EventEmitter {
     return this;
   }
 }
+
+export const __useDefault = true;
 
 // autonomous execution: node node-aplay.js my-song.wav
 if (require.main === module) {
