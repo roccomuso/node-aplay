@@ -1,9 +1,10 @@
 /**
- * Javascript ALSA aplay wrapper for Node.js
+ * Javascript ALSA aplay and amixer wrapper for Node.js
  *
- * @mantainedBy Rocco Musolino - @roccomuso
+ * @mantainedBy Jesse Kirschner - @JesseKirschner
+ * @author Rocco Musolino - @roccomuso
  * @author Patrik Melander (lotAballs) node-aplay module
- * @originalAuthor Maciej Sopyło @ KILLAHFORGE.
+ * @originalAuthor Maciej Sopyło - @KILLAHFORGE
  *
  * Dependencies: sudo apt-get install alsa-base alsa-utils
  * MIT License
@@ -30,12 +31,16 @@ export class Sound extends EventEmitter {
     this._channel = options.channel;
   }
 
-  // TODO: make this into a promise;
-  // TODO: test if file exists
-  public play(fileName?: string): this {
+  /**
+   * Play file once, for x amount of loops or loop indefinitly
+   *
+   * @param {string} fileName - absolute path of file
+   * @param {number} loops - amount of loops, or -1 for endless loops
+   * @returns self
+   */
+  public play(fileName?: string, loops = 0): this {
     this._stopped = false;
 
-    // avoid multiple play for the same istance
     if (this._process) this._process.kill('SIGTERM');
 
     let args: string[] = this._channel ? [`-c ${this._channel}`] : [];
@@ -43,8 +48,12 @@ export class Sound extends EventEmitter {
 
     this._process = spawn(aplayExec, args);
     this._process.on('exit', (code, sig) => {
-      this._stopped = true;
-      if (code !== null && sig === null) this.emit('complete');
+      if (loops != 0) {
+        this.play(fileName, loops - 1);
+      } else {
+        this._stopped = true;
+        if (code !== null && sig === null) this.emit('complete');
+      }
     });
 
     return this;
