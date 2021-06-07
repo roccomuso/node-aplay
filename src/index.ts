@@ -10,25 +10,58 @@
  * MIT License
  */
 
-import * as os from 'os';
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { ChildProcessWithoutNullStreams, exec, spawn } from 'child_process';
 import EventEmitter from 'events';
-
-const aplayExec = os.platform() === 'darwin' ? 'afplay' : 'aplay';
-
 interface SoundOptions {
-  channel?: number;
+  volume?: number;
+  channelMap?: ChannelMap[];
 }
 
+type ChannelMap =
+  | 'left'
+  | 'right'
+  | 'front-left'
+  | 'front-right'
+  | 'mono'
+  | 'front-center'
+  | 'rear-left'
+  | 'rear-right'
+  | 'rear-center'
+  | 'lfe'
+  | 'front-left-of-center'
+  | 'front-right-of-center'
+  | 'side-left'
+  | 'side-right'
+  | 'top-center'
+  | 'top-front-center'
+  | 'top-front-left'
+  | 'top-front-right'
+  | 'top-rear-left'
+  | 'top-rear-right'
+  | 'top-rear-center';
+
+const relative_to_absolute_volume = (relative_volume: number) => {
+  const volume = Math.max(0, Math.min(100, relative_volume));
+  return Math.floor((65536 / 100) * volume);
+};
+
 export class Sound extends EventEmitter {
-  private _channel?: number;
+  private _sink_input_id?: string;
+  private _volume = 45000;
   private _process?: ChildProcessWithoutNullStreams;
   private _stopped = true;
+  private _channelMap: ChannelMap[] = ['left', 'right'];
 
   constructor(options: SoundOptions = {}) {
     super();
 
-    this._channel = options.channel;
+    if (options.volume) {
+      this._volume = relative_to_absolute_volume(options.volume);
+    }
+
+    if (options.channelMap) {
+      this._channelMap = options.channelMap;
+    }
   }
 
   /**
@@ -43,10 +76,25 @@ export class Sound extends EventEmitter {
 
     if (this._process) this._process.kill('SIGTERM');
 
-    let args: string[] = this._channel ? [`-c ${this._channel}`] : [];
-    if (fileName) args = args.concat([fileName]);
+    let args: string[] = [
+      `--volume=${this._volume}`,
+      `--channels=${this._channelMap.length}`,
+      `--channel-map=${this._channelMap}`,
+    ];
 
-    this._process = spawn(aplayExec, args);
+    if (fileName) args = args.concat([fileName]);
+    this._process = spawn('pacat', args);
+
+    this._process.on('spawn', () => {
+      exec('pacmd list-sink-inputs', {}, (error, stdout) => {
+        stdout.split('index: ').forEach((sinkInput) => {
+          if (fileName && sinkInput.includes(fileName)) {
+            this._sink_input_id = sinkInput.split(/\r?\n/)[0];
+          }
+        });
+      });
+    });
+
     this._process.on('exit', (code, sig) => {
       if (loops != 0) {
         this.play(fileName, loops - 1);
@@ -55,6 +103,13 @@ export class Sound extends EventEmitter {
         if (code !== null && sig === null) this.emit('complete');
       }
     });
+
+    return this;
+  }
+
+  public setVolume(volume: number): this {
+    this._volume = relative_to_absolute_volume(volume);
+    exec(`pacmd set-sink-input-volume ${this._sink_input_id} ${this._volume}`);
 
     return this;
   }
@@ -73,6 +128,8 @@ export class Sound extends EventEmitter {
     if (this._process) {
       if (this._stopped) return this;
       this._process.kill('SIGSTOP');
+
+      // exec(`pactl suspend-source ${this._sink_input_id} 1`);
       this.emit('pause');
     }
 
@@ -83,22 +140,10 @@ export class Sound extends EventEmitter {
     if (this._process) {
       if (this._stopped) return this.play();
 
+      // exec(`pactl suspend-source ${this._sink_input_id} 0`);
       this._process.kill('SIGCONT');
       this.emit('resume');
     }
     return this;
   }
-
-  public setChannel(ch: number): this {
-    this._channel = ch;
-    return this;
-  }
-}
-
-export const __useDefault = true;
-
-// autonomous execution: node node-aplay.js my-song.wav
-if (require.main === module) {
-  const player = new Sound();
-  player.play(process.argv[2]);
 }

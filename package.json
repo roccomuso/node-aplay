@@ -41,5 +41,9 @@
   },
   "files": [
     "lib/**/*"
-  ]
+  ],
+  "dependencies": {
+    "@types/uniqid": "^5.3.0",
+    "uniqid": "^5.3.0"
+  }
 }
